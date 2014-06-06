@@ -46,6 +46,7 @@ Unstructured data:
    NearestNDInterpolator
    CloughTocher2DInterpolator
    Rbf
+   InverseDistanceInterpolator
    interp2d
 
 For data on a grid:
@@ -163,6 +164,7 @@ from .fitpack import *
 # New interface to fitpack library:
 from .fitpack2 import *
 
+from .idw import InverseDistanceInterpolator
 from .rbf import Rbf
 
 from .polyint import *

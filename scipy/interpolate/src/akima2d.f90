@@ -1,59 +1,4 @@
-MODULE MOD_AKIMA_2D
-
-  !!-----------------------------------------------------------------
-  !!         A Method Of Bivariate Interpolation And Smooth
-  !!            Surface Fitting Based On Local Procedures
-  !!
-  !!                        Hiroshi AKIMA, 1974
-  !!
-  !!  author={Akima, H.},
-  !!  title={A Method of Bivariate Interpolation and Smooth Surface Fitting
-  !!         Based on Local Procedures},
-  !!  journal={Commun. ACM},
-  !!  year={1974},
-  !!  pages={18-20},
-  !!  volume={17},
-  !!  number={1}
-  !!
-  !!
-  !!   AUTHORS:
-  !!            Coded from scratch by Laurent BRODEAU, 2007
-  !!
-  !!            Stylish and more efficient method to solve the 16x16 linear system:
-  !!            Jean-Michel Brankart, October 2010
-  !!
-  !!            Last update: Laurent Brodeau, June 2014
-  !!
-  !!            Contact: brodeau@gmail.com
-  !!
-  !!-----------------------------------------------------------------
-
-
-!  USE mod_drown, ONLY: FILL_EXTRA_BANDS, TEST_XYZ
-
-
-  IMPLICIT NONE
-
-
-  LOGICAL, PUBLIC :: &
-       &    l_first_call_akima   = .TRUE. , &  !: wether it is the first time or not that AKIMA_2D is called
-       &    l_always_first_call  = .FALSE.
-  
-!  INTEGER, DIMENSION(:,:,:), ALLOCATABLE :: ixy_pos !: table storing input/output grids mapping
-
-  PRIVATE
-
-  PUBLIC :: AKIMA_2D_INIT, AKIMA_2D_EVAL
-  
-CONTAINS
-
-
-
-
-
-
-
-  SUBROUTINE AKIMA_2D_INIT(nsys, nx1, ny1, k_ew_per, X10, Y10, Z1, poly, lon_in, lat_in)
+  SUBROUTINE AKIMA_2D_INIT(nsys, nx1, ny1, k_ew_per, X1, Y1, Z1, poly, lon_in, lat_in)
 
     !!================================================================
     !!
@@ -81,7 +26,7 @@ CONTAINS
     INTEGER, INTENT(in)  :: nsys !: Dimmension of the linear sytem to solve
     INTEGER,  INTENT(in)                 :: nx1, ny1
     INTEGER,  INTENT(in)                 :: k_ew_per
-    REAL(8), DIMENSION(nx1,ny1), INTENT(in)  :: X10, Y10                     !: input coordinates
+    REAL(8), DIMENSION(nx1,ny1), INTENT(in)  :: X1, Y1                     !: input coordinates
     REAL(8), DIMENSION(nx1,ny1), INTENT(in)  :: Z1                           !: input data
     REAL(8), DIMENSION(nx1+3,ny1+3,nsys), INTENT(out) ::  poly  !: see poly alloc, depends on n_extd
     REAL(8), DIMENSION(nx1+4,ny1+4), INTENT(out)  :: lon_in, lat_in  !: see below, depends on n_extd
@@ -97,8 +42,7 @@ CONTAINS
 
     INTEGER :: ni1, nj1
 
-    REAL(8), DIMENSION(:,:), ALLOCATABLE ::    &
-         &    X1, Y1, Z_in 
+    REAL(8), DIMENSION(:,:), ALLOCATABLE ::    Z_in 
 
     REAL(8), DIMENSION(:,:), ALLOCATABLE ::    &
          &    Z_in_p4 , lon_in_p4 , lat_in_p4, &
@@ -108,24 +52,6 @@ CONTAINS
 
 
 
-
-    !! Create 2D (ni*nj) arrays out of 1d (ni*1 and nj*1) arrays if needed:
-    !! => TEST_XYZ tests if a 2D array is a true 2D array (NxM) or a fake (Nx1)
-    !!    and returns '1d' if it is a fake 2D array 
-
-    ctype = TEST_XYZ(X10, Y10, Z1)
-    ALLOCATE ( X1(nx1,ny1) , Y1(nx1,ny1) )
-
-    IF ( ctype == '1d' ) THEN
-       DO jj=1, ny1
-          X1(:,jj) = X10(:,1)
-       END DO
-       DO ji=1, nx1
-          Y1(ji,:) = Y10(:,1)
-       END DO
-    ELSE
-       X1 = X10 ; Y1 = Y10
-    END IF
 
 
 
@@ -146,8 +72,6 @@ CONTAINS
 
     !! For cleaner results adding the extra band at 4 boundaries :
     CALL FILL_EXTRA_BANDS(k_ew_per, X1, Y1, REAL(Z1,8), lon_in, lat_in, Z_in)
-
-    DEALLOCATE (X1, Y1)
 
 
     !! C r e a t i n g   e x t e n d e d   a r r a y s  (for slopes computation):
@@ -195,7 +119,7 @@ CONTAINS
     
     INTEGER, PARAMETER :: n_extd = 4    ! input grid extension
 
-    LOGICAL :: l_x_found, l_y_found
+    LOGICAL :: l_x_found, l_y_found, l_first_call_akima = .FALSE.
 
     REAL(8) :: &
          &  px2, py2, &
@@ -1246,5 +1170,3 @@ CONTAINS
     !!
     !!
   END FUNCTION TEST_XYZ
-
-END MODULE MOD_AKIMA_2D

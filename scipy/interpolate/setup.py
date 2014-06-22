@@ -40,6 +40,10 @@ def configuration(parent_package='',top_path=None):
                          include_dirs=['src'],
                          depends=['src/interpolate.h'])
 
+    config.add_extension('_akima2d',
+                         sources=['src/akima2d.pyf', 'src/akima2d.f90'],
+                         )
+
     config.add_data_dir('tests')
 
     return config
